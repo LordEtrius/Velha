@@ -14,6 +14,18 @@ T Value
 T Cell
 | cell (value: Value)
 
+get_value(cell: Cell) : Value
+  case cell
+  | cell => cell.value
+
+show_map(gm: GameMap) : String
+  case gm
+  | nil  => []
+  | cons => case get_value(gm.head) as aux
+    | e => cons(_ '_', show_map(gm.tail))
+    | x => cons(_ 'x', show_map(gm.tail))
+    | o => cons(_ 'o', show_map(gm.tail))
+
 GameMap : Type
   List(Cell)
 
@@ -29,9 +41,9 @@ TripleMatch : Type
 
 // Auxiliary
 // ---------
-get_value_at(A; index: Nat, xs: List(A)) : A
+get_value_at(A; index: Nat, xs: List(A), default: A) : A
   let value_at = at(_ index, xs)
-  with_default(_ zero, value_at)
+  with_default(_ default, value_at)
 
 is_value_equal(value: Value, match: Value) : Bool
   case value
@@ -57,7 +69,7 @@ set_value_at(A; val: A, idx: Nat, xs: List(A)) : List(A)
     case xs
     | nil  => nil(_)
     | cons => cons(_ val , xs.tail)
-  | succ => 
+  | succ =>
     case xs
     | nil => nil(_)
     | cons => cons(_ xs.head, set_value_at(_ val, idx.pred, xs.tail))
@@ -77,17 +89,15 @@ init_game : GameState
 // Actions
 // -------
 
-// Add a new Value on a empty cells
-// add_move(value: Value, index: Nat, map: GameMap) : GameMap
-//   let index_value = get_value_at(_ zero, map)
-//   if is_value_equal(e, index_value) then
-//     map
-//   else 
-//     // returns a new map with x in index position
-//     set_value_at(_ cell(value), index, map)
-
-// update(value: Value, index: Number, map: GameMap) : GameMap
-//   if index .==. 0 then  // map changing only position 0
+// Add a new Value on an empty cells
+add_value(value: Value, index: Nat, map: GameMap) : GameMap
+  let index_value = get_value_at(_ index, map, cell(e))
+  case index_value
+  | cell => 
+      let index_is_empty = is_value_equal(e, index_value.value)
+      case index_is_empty 
+      | true  => set_value_at(_ cell(value), index, map)
+      | false => map
 
 // match_horizontal(map: GameMap) : List(Number)
 
@@ -100,9 +110,12 @@ main
   let a = [cell(e), cell(e), cell(e),
    cell(e), cell(e), cell(e),
    cell(e), cell(e), cell(e)]
-  set_value_at(_ cell(x), 1n, a)
+  let new_map = set_value_at(_ cell(x), 1n, a)
+  let move_1 = add_value(x, 2n, a)
+  let move_2 = add_value(o, 0n, move_1)
+  show_map(move_2)
   // let a = [0, 1, 2, 3]
-  // set_value_at(_ 9, 0n, a)
+  // set_value_at(_ 9, 5n, a)
   
 
 
