@@ -1,0 +1,110 @@
+import Base#
+
+// Data Structures
+// --------------
+T Side
+| p1 : 1
+| p2 : 2
+
+T Value
+| e
+| x
+| o
+
+T Cell
+| cell (value: Value)
+
+GameMap : Type
+  List(Cell)
+
+T GameState
+| game_state(
+  map: GameMap,
+  is_ative: Bool
+  )
+
+// Describes the winning triple position
+TripleMatch : Type
+  List(Number)
+
+// Auxiliary
+// ---------
+get_value_at(A; index: Nat, xs: List(A)) : A
+  let value_at = at(_ index, xs)
+  with_default(_ zero, value_at)
+
+is_value_equal(value: Value, match: Value) : Bool
+  case value
+  | e => 
+    case match
+    | e => true
+    | x => false
+    | o => false
+  | x => 
+    case match
+    | e => false
+    | x => true
+    | o => false
+  | o =>
+    case match
+    | e => false
+    | x => false
+    | o => true
+
+set_value_at(A; val: A, idx: Nat, xs: List(A)) : List(A)
+  case idx
+  | zero => 
+    case xs
+    | nil  => nil(_)
+    | cons => cons(_ val , xs.tail)
+  | succ => 
+    case xs
+    | nil => nil(_)
+    | cons => cons(_ xs.head, set_value_at(_ val, idx.pred, xs.tail))
+  
+
+
+// Game states
+// -----------
+empty_game_map : GameMap
+  [cell(e), cell(e), cell(e),
+   cell(e), cell(e), cell(e),
+   cell(e), cell(e), cell(e)]
+
+init_game : GameState
+  game_state(empty_game_map, true)
+
+// Actions
+// -------
+
+// Add a new Value on a empty cells
+// add_move(value: Value, index: Nat, map: GameMap) : GameMap
+//   let index_value = get_value_at(_ zero, map)
+//   if is_value_equal(e, index_value) then
+//     map
+//   else 
+//     // returns a new map with x in index position
+//     set_value_at(_ cell(value), index, map)
+
+// update(value: Value, index: Number, map: GameMap) : GameMap
+//   if index .==. 0 then  // map changing only position 0
+
+// match_horizontal(map: GameMap) : List(Number)
+
+
+// game: GameState
+//     game_state(empty_game_map)
+//   // game_state(new_board)
+
+main
+  let a = [cell(e), cell(e), cell(e),
+   cell(e), cell(e), cell(e),
+   cell(e), cell(e), cell(e)]
+  set_value_at(_ cell(x), 1n, a)
+  // let a = [0, 1, 2, 3]
+  // set_value_at(_ 9, 0n, a)
+  
+
+
+
+
