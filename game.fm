@@ -1,4 +1,5 @@
 import Base#
+import Matrix
 
 // Data Structures
 // --------------
@@ -8,21 +9,14 @@ T Value
 | x
 | o
 
-T Cell
-| cell (value: Value)
-
-T Matrix<A>
-| m_nil
-| m_cons(row: Number, col: Number, head: A, tail: Matrix(A))
-
-get_value(cell: Cell) : Value
-  case cell
-  | cell => cell.value
+// get_value(cell: Cell) : Value
+//   case cell
+//   | cell => cell.value
 
 show_map(gm: GameMap) : String
   case gm
   | nil  => []
-  | cons => case get_value(gm.head) as aux
+  | cons => case gm.head 
     | e => cons(_ '?', show_map(gm.tail))
     | x => cons(_ 'x', show_map(gm.tail))
     | o => cons(_ 'o', show_map(gm.tail))
@@ -45,7 +39,7 @@ show_formatted_map(size: Nat, str: String) : String
 
 
 GameMap : Type
-  List(Cell)
+  List(Value)
 
 T GameState
 | game_state(
@@ -97,69 +91,11 @@ nat_to_number(nat: Nat) : Number
   | zero => 0
   | succ => 1 .+. (nat_to_number(nat.pred))
 
-// // TODO add a proof that the new list a square root of xs lenght
-diagonalLR(A; mx: Matrix(A), idx: Nat) : Matrix(A)
-  case mx
-  | m_nil  => m_nil(_)
-  | m_cons =>
-    case idx
-    | zero => m_nil(_)
-    | succ =>  
-      if (mx.row .==. mx.col) then
-        m_cons(_ mx.row, mx.col, mx.head, diagonalLR(_ mx.tail, idx.pred))
-      else
-        diagonalLR(_ mx.tail, idx.pred)
-  : Matrix(A)
-
-diagonalRL(A; mx: Matrix(A), idx: Nat) : Matrix(A)
-  case mx
-  | m_nil  => m_nil(_)
-  | m_cons =>
-    case idx
-    | zero => m_nil(_)
-    | succ =>
-      let cell_1 = (mx.row .==. 2) .&. (mx.col .==. 0)
-      let cell_2 = (mx.row .==. 1) .&. (mx.col .==. 1)
-      let cell_3 = (mx.row .==. 0) .&. (mx.col .==. 2)
-      if cell_1 .|. cell_2 .|. cell_3 then
-        m_cons(_ mx.row, mx.col, mx.head, diagonalRL(_ mx.tail, idx.pred))
-      else
-        diagonalRL(_ mx.tail, idx.pred)
-  : Matrix(A)
-
-// Transforms a list in a Matrix
-list_to_matrix.go(A; xs: List(A), row: Number, col: Number) : Matrix(A)
-  case xs
-  | nil  => m_nil(_)
-  | cons => 
-    if row .==. 0 then
-      aux_row(_ xs, 0, col)
-    else if row .==. 1 then
-      aux_row(_ xs, 1, col)
-    else
-      aux_row(_ xs, 2, col)
-  : Matrix (A)
-
-aux_row(A; xs: List(A), row: Number, col: Number) : Matrix(A)
-  case xs
-  | nil => m_nil(_)
-  | cons =>
-      if col .==. 0 then 
-        m_cons(_ row, 0, xs.head, list_to_matrix.go(_ xs.tail, row, col .+. 1))
-      else if col .==. 1 then
-        m_cons(_ row, 1, xs.head, list_to_matrix.go(_ xs.tail, row, col .+. 1))
-      else
-        m_cons(_ row, 2, xs.head, list_to_matrix.go(_ xs.tail, row .+. 1, 0))
-  : Matrix(A)
-
-list_to_matrix(A; xs: List(A)) : Matrix(A)
-  list_to_matrix.go(_ xs, 0, 0)
-
-show_matrix(m: Matrix(Cell)) : String
+show_matrix(m: Matrix(Value)) : String
   case m
   | m_nil  => []
   | m_cons => 
-    case get_value(m.head) as aux
+    case m.head as aux
     | e => cons(_ '?', show_matrix(m.tail))
     | x => cons(_ 'x', show_matrix(m.tail))
     | o => cons(_ 'o', show_matrix(m.tail))
@@ -167,52 +103,102 @@ show_matrix(m: Matrix(Cell)) : String
 // Output "oox"
 test.diagonalLR
   let a = 
-  [cell(o), cell(e), cell(e),
-   cell(e), cell(o), cell(e),
-   cell(e), cell(e), cell(x)]
+  [o, e, e,
+   e, o, e,
+   e, e, x]
   show_matrix(diagonalLR(_ list_to_matrix(_ a), 9n))
 
 // Output "xo?"
 test.diagonalRL
   let a = 
-  [cell(o), cell(e), cell(x),
-   cell(e), cell(o), cell(e),
-   cell(e), cell(e), cell(o)]
+  [o, e, x,
+   e, o, e,
+   e, e, o]
   show_matrix(diagonalRL(_ list_to_matrix(_ a), 9n))
+
+equal_x(e : Value) : Bool
+  case e 
+  | e => false 
+  | x => true
+  | o => false
+  : Bool
+
+equal_o(e : Value) : Bool
+  case e 
+  | e => false 
+  | x => true
+  | o => false
+  : Bool
 
 // Game states
 // -----------
 empty_game_map : GameMap
-  [cell(e), cell(e), cell(e),
-   cell(e), cell(e), cell(e),
-   cell(e), cell(e), cell(e)]
+  [e, e, e,
+   e, e, e,
+   e, e, e]
 
 init_game : GameState
   game_state(empty_game_map, true)
 
+
 // Actions
 // -------
-
 // Add a new Value on an empty cells
 add_value(value: Value, index: Nat, map: GameMap) : GameMap
-  let index_value = get_value(get_value_at(_ index, map, cell(e)))
+  let index_value = get_value_at(_ index, map, e)
   let index_is_empty = is_value_equal(e, index_value)
   case index_is_empty 
-  | true  => set_value_at(_ cell(value), index, map)
+  | true  => set_value_at(_ value, index, map)
   | false => map
 
 // match_horizontal(map: GameMap) : List(Number)
 
 
-// game: GameState
-//     game_state(empty_game_map)
-//   // game_state(new_board)
+
+// match_diagonal(A; mx: Matrix(A)): Bool
+//   let diagonalLR = case
+
+// match_diagonalLR(A; mx: Matrix(A)) : Bool
+//   let res = diagonalLR(_ mx, 9n)
+//   case res
+//   | m_nil  => 
+//   | m_succ =>
+//     let value = get_value(res.head)
+//     case cell.
+
+test_match_triple : Matrix(Value)
+  let l = [x, x, e]
+  let m = list_to_matrix(_ l)
+  let res = match_x(m)
+  case res
+  | none => m_nil(_)
+  | some => res.value
+  // nat_to_number(match_x(m))
+
+// match_triple(values: List(Value)) : Value
+
+match_x(values: Matrix(Value)) : Maybe(Matrix(Value))
+  let filter_x = filter_mx(_ equal_x, values) // list of "o" elements
+  let len_filtered = length_mx(_ filter_x)
+  if nat_to_number(len_filtered) .==. 3 then
+    some(_ values)
+  else 
+    none(_)
+
+match_o(values: Matrix(Value)) : Maybe(Matrix(Value))
+  let filter_o = filter_mx(_ equal_o, values) // list of "o" elements
+  let len_filtered = length_mx(_ filter_o)
+  if nat_to_number(len_filtered) .==. 3 then
+    some(_ values)
+  else 
+    none(_)
+
 
 main
-  let a = [cell(e), cell(e), cell(e),
-   cell(e), cell(e), cell(e),
-   cell(e), cell(e), cell(e)]
-  let new_map = set_value_at(_ cell(x), 1n, a)
+  let a = [e, e, e,
+   e, e, e,
+   e, e, e]
+  let new_map = set_value_at(_ x, 1n, a)
   let move_1 = add_value(x, 2n, a)
   let move_2 = add_value(o, 0n, move_1)
   let stringfied = show_map(move_2)
