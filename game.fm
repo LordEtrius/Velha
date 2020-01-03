@@ -2,9 +2,6 @@ import Base#
 
 // Data Structures
 // --------------
-T Side
-| p1 : 1
-| p2 : 2
 
 T Value
 | e
@@ -14,6 +11,10 @@ T Value
 T Cell
 | cell (value: Value)
 
+T Matrix<A>
+| m_nil
+| m_cons(row: Number, col: Number, head: A, tail: Matrix(A))
+
 get_value(cell: Cell) : Value
   case cell
   | cell => cell.value
@@ -22,9 +23,26 @@ show_map(gm: GameMap) : String
   case gm
   | nil  => []
   | cons => case get_value(gm.head) as aux
-    | e => cons(_ '_', show_map(gm.tail))
+    | e => cons(_ '?', show_map(gm.tail))
     | x => cons(_ 'x', show_map(gm.tail))
     | o => cons(_ 'o', show_map(gm.tail))
+
+show_formatted_map(size: Nat, str: String) : String
+  case size
+  + show_formatted_map : Nat -> String -> String // do I need this?
+  | zero => nil(_)
+  | succ => 
+    case str
+    | nil  => nil(_)
+    | cons => 
+      let num = nat_to_number(size)
+      if (num .%. 3) .==. 0 then 
+        // let new_line = concat(_ str.head, 12) // head is a single element
+        cons(_ str.head, show_formatted_map(size.pred, str.tail))
+      else 
+        cons(_ str.head, show_formatted_map(size.pred, str.tail))
+  : String
+
 
 GameMap : Type
   List(Cell)
@@ -74,7 +92,72 @@ set_value_at(A; val: A, idx: Nat, xs: List(A)) : List(A)
     | nil => nil(_)
     | cons => cons(_ xs.head, set_value_at(_ val, idx.pred, xs.tail))
   
+nat_to_number(nat: Nat) : Number
+  case nat
+  | zero => 0
+  | succ => 1 .+. (nat_to_number(nat.pred))
 
+// // TODO add a proof that the new list a square root of xs lenght
+// diagonalRL(A; mx: Matrix(A), idx: Nat, row_len: Num) : List(A)
+//   case mx
+//   | m_nil  => nil(_)
+//   | m_cons => 
+//     if m_cons.head 
+
+// diagonalRL.go(A; xs: List(A), idx: Nat, find_num: Num) : List(A)
+//   case idx
+//   | zero => nil(_)
+//   | succ => 
+//     let num = nat_to_number(idx)
+//     if (num .==. (find_num .-. 1)) then
+//       let next_match = find_num .-. 1
+//       succ(_ xs.head, diagonalRL.go(_ xs.tail, idx.pred, next_match))
+//     else 
+//       diagonalRL.go(_ xs.tail, idx.pred, find_num)
+
+
+// Transforms a list in a Matrix
+list_to_matrix.go(A; xs: List(A), row: Number, col: Number) : Matrix(A)
+  case xs
+  | nil  => m_nil(_)
+  | cons => 
+    if row .==. 0 then
+      aux_row(_ xs, 0, col)
+    else if row .==. 1 then
+      aux_row(_ xs, 1, col)
+    else
+      aux_row(_ xs, 2, col)
+  : Matrix (A)
+
+aux_row(A; xs: List(A), row: Number, col: Number) : Matrix(A)
+  case xs
+  | nil => m_nil(_)
+  | cons =>
+      if col .==. 0 then 
+        m_cons(_ row, 0, xs.head, list_to_matrix.go(_ xs.tail, row, col .+. 1))
+      else if col .==. 1 then
+        m_cons(_ row, 1, xs.head, list_to_matrix.go(_ xs.tail, row, col .+. 1))
+      else
+        m_cons(_ row, 2, xs.head, list_to_matrix.go(_ xs.tail, row .+. 1, 0))
+  : Matrix(A)
+
+list_to_matrix(A; xs: List(A)) : Matrix(A)
+  list_to_matrix.go(_ xs, 0, 0)
+
+show_matrix(m: Matrix(Cell)) : String
+  case m
+  | m_nil  => []
+  | m_cons => 
+    case get_value(m.head) as aux
+    | e => cons(_ '?', show_matrix(m.tail))
+    | x => cons(_ 'x', show_matrix(m.tail))
+    | o => cons(_ 'o', show_matrix(m.tail))
+
+test3
+  let a = [cell(e), cell(e), cell(e),
+   cell(e), cell(o), cell(e),
+   cell(e), cell(e), cell(e)]
+  show_matrix(list_to_matrix(_ a))
 
 // Game states
 // -----------
@@ -91,13 +174,11 @@ init_game : GameState
 
 // Add a new Value on an empty cells
 add_value(value: Value, index: Nat, map: GameMap) : GameMap
-  let index_value = get_value_at(_ index, map, cell(e))
-  case index_value
-  | cell => 
-      let index_is_empty = is_value_equal(e, index_value.value)
-      case index_is_empty 
-      | true  => set_value_at(_ cell(value), index, map)
-      | false => map
+  let index_value = get_value(get_value_at(_ index, map, cell(e)))
+  let index_is_empty = is_value_equal(e, index_value)
+  case index_is_empty 
+  | true  => set_value_at(_ cell(value), index, map)
+  | false => map
 
 // match_horizontal(map: GameMap) : List(Number)
 
@@ -113,7 +194,9 @@ main
   let new_map = set_value_at(_ cell(x), 1n, a)
   let move_1 = add_value(x, 2n, a)
   let move_2 = add_value(o, 0n, move_1)
-  show_map(move_2)
+  let stringfied = show_map(move_2)
+  // stringfied
+  show_formatted_map(length(stringfied), stringfied)
   // let a = [0, 1, 2, 3]
   // set_value_at(_ 9, 5n, a)
   
