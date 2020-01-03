@@ -98,23 +98,34 @@ nat_to_number(nat: Nat) : Number
   | succ => 1 .+. (nat_to_number(nat.pred))
 
 // // TODO add a proof that the new list a square root of xs lenght
-// diagonalRL(A; mx: Matrix(A), idx: Nat, row_len: Num) : List(A)
-//   case mx
-//   | m_nil  => nil(_)
-//   | m_cons => 
-//     if m_cons.head 
+diagonalLR(A; mx: Matrix(A), idx: Nat) : Matrix(A)
+  case mx
+  | m_nil  => m_nil(_)
+  | m_cons =>
+    case idx
+    | zero => m_nil(_)
+    | succ =>  
+      if (mx.row .==. mx.col) then
+        m_cons(_ mx.row, mx.col, mx.head, diagonalLR(_ mx.tail, idx.pred))
+      else
+        diagonalLR(_ mx.tail, idx.pred)
+  : Matrix(A)
 
-// diagonalRL.go(A; xs: List(A), idx: Nat, find_num: Num) : List(A)
-//   case idx
-//   | zero => nil(_)
-//   | succ => 
-//     let num = nat_to_number(idx)
-//     if (num .==. (find_num .-. 1)) then
-//       let next_match = find_num .-. 1
-//       succ(_ xs.head, diagonalRL.go(_ xs.tail, idx.pred, next_match))
-//     else 
-//       diagonalRL.go(_ xs.tail, idx.pred, find_num)
-
+diagonalRL(A; mx: Matrix(A), idx: Nat) : Matrix(A)
+  case mx
+  | m_nil  => m_nil(_)
+  | m_cons =>
+    case idx
+    | zero => m_nil(_)
+    | succ =>
+      let cell_1 = (mx.row .==. 2) .&. (mx.col .==. 0)
+      let cell_2 = (mx.row .==. 1) .&. (mx.col .==. 1)
+      let cell_3 = (mx.row .==. 0) .&. (mx.col .==. 2)
+      if cell_1 .|. cell_2 .|. cell_3 then
+        m_cons(_ mx.row, mx.col, mx.head, diagonalRL(_ mx.tail, idx.pred))
+      else
+        diagonalRL(_ mx.tail, idx.pred)
+  : Matrix(A)
 
 // Transforms a list in a Matrix
 list_to_matrix.go(A; xs: List(A), row: Number, col: Number) : Matrix(A)
@@ -153,11 +164,21 @@ show_matrix(m: Matrix(Cell)) : String
     | x => cons(_ 'x', show_matrix(m.tail))
     | o => cons(_ 'o', show_matrix(m.tail))
 
-test3
-  let a = [cell(e), cell(e), cell(e),
+// Output "oox"
+test.diagonalLR
+  let a = 
+  [cell(o), cell(e), cell(e),
    cell(e), cell(o), cell(e),
-   cell(e), cell(e), cell(e)]
-  show_matrix(list_to_matrix(_ a))
+   cell(e), cell(e), cell(x)]
+  show_matrix(diagonalLR(_ list_to_matrix(_ a), 9n))
+
+// Output "xo?"
+test.diagonalRL
+  let a = 
+  [cell(o), cell(e), cell(x),
+   cell(e), cell(o), cell(e),
+   cell(e), cell(e), cell(o)]
+  show_matrix(diagonalRL(_ list_to_matrix(_ a), 9n))
 
 // Game states
 // -----------
