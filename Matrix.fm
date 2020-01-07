@@ -34,7 +34,6 @@ diagonalRL(A; mx: Matrix(A), idx: Nat) : Matrix(A)
         diagonalRL(_ mx.tail, idx.pred)
   : Matrix(A)
 
-
 // Transforms a list in a Matrix
 list_to_matrix.go(A; xs: List(A), row: Number, col: Number) : Matrix(A)
   case xs
@@ -76,6 +75,12 @@ length_mx(A; mx : Matrix(A)) : Nat
   | m_nil  => zero
   | m_cons => succ(length_mx(A; mx.tail))
 
+// Transform a matrix in a list
+// Obs: loses info like 'row' and 'col'
+matrix_to_list(A; mx: Matrix(A)) : List(A)
+  case mx 
+  | m_nil => nil(_)
+  | m_cons => cons(_ mx.head, matrix_to_list(_ mx.tail))
 
 // Auxiliar
 // --------
