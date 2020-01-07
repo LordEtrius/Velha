@@ -9,17 +9,32 @@ T Value
 | x
 | o
 
-// get_value(cell: Cell) : Value
-//   case cell
-//   | cell => cell.value
+GameMap : Type
+  List(Value)
 
-show_map(gm: GameMap) : String
-  case gm
-  | nil  => []
-  | cons => case gm.head 
-    | e => cons(_ '?', show_map(gm.tail))
-    | x => cons(_ 'x', show_map(gm.tail))
-    | o => cons(_ 'o', show_map(gm.tail))
+T GameState
+| game_state(
+  map: GameMap,
+  is_ative: Bool
+  )
+
+Log : Type
+  List(GameMap)
+
+// Describes the winning triple position
+TripleMatch : Type
+  List(Number)
+
+// show_map(gm: GameMap) : String
+//   case gm
+//   | nil  => []
+//   | cons => case gm.head 
+//     | e => cons(_ '?', show_map(gm.tail))
+//     | x => cons(_ 'x', show_map(gm.tail))
+//     | o => cons(_ 'o', show_map(gm.tail))
+
+// Auxiliary
+// ---------
 
 show_formatted_map(size: Nat, str: String) : String
   case size
@@ -37,22 +52,6 @@ show_formatted_map(size: Nat, str: String) : String
         cons(_ str.head, show_formatted_map(size.pred, str.tail))
   : String
 
-
-GameMap : Type
-  List(Value)
-
-T GameState
-| game_state(
-  map: GameMap,
-  is_ative: Bool
-  )
-
-// Describes the winning triple position
-TripleMatch : Type
-  List(Number)
-
-// Auxiliary
-// ---------
 get_value_at(A; index: Nat, xs: List(A), default: A) : A
   let value_at = at(_ index, xs)
   with_default(_ default, value_at)
@@ -74,17 +73,6 @@ is_value_equal(value: Value, match: Value) : Bool
     | e => false
     | x => false
     | o => true
-
-set_value_at(A; val: A, idx: Nat, xs: List(A)) : List(A)
-  case idx
-  | zero => 
-    case xs
-    | nil  => nil(_)
-    | cons => cons(_ val , xs.tail)
-  | succ =>
-    case xs
-    | nil => nil(_)
-    | cons => cons(_ xs.head, set_value_at(_ val, idx.pred, xs.tail))
   
 nat_to_number(nat: Nat) : Number
   case nat
@@ -143,7 +131,7 @@ init_game : GameState
 
 // Actions
 // -------
-// Add a new Value on an empty cells
+// If possible, adds a new Value on empty cell
 add_value(value: Value, index: Nat, map: GameMap) : GameMap
   let index_value = get_value_at(_ index, map, e)
   let index_is_empty = is_value_equal(e, index_value)
@@ -151,20 +139,27 @@ add_value(value: Value, index: Nat, map: GameMap) : GameMap
   | true  => set_value_at(_ value, index, map)
   | false => map
 
-// match_horizontal(map: GameMap) : List(Number)
+// Mark value ('x' or 'o') on a cell
+set_value_at(A; val: A, idx: Nat, xs: List(A)) : List(A)
+  case idx
+  | zero => 
+    case xs
+    | nil  => nil(_)
+    | cons => cons(_ val , xs.tail)
+  | succ =>
+    case xs
+    | nil => nil(_)
+    | cons => cons(_ xs.head, set_value_at(_ val, idx.pred, xs.tail))
+
+// mx: a Matrix with 9 elements
+// match_diagonal(A; mx: Matrix(A)): Match_Triple
+//   let match_diagonal_lr_x = match_x(mx)
 
 
-
-// match_diagonal(A; mx: Matrix(A)): Bool
-//   let diagonalLR = case
-
-// match_diagonalLR(A; mx: Matrix(A)) : Bool
-//   let res = diagonalLR(_ mx, 9n)
-//   case res
-//   | m_nil  => 
-//   | m_succ =>
-//     let value = get_value(res.head)
-//     case cell.
+T Match_Triple
+| no_match
+| match_diagonal_lr(mx: Matrix(Value))
+| match_diagonal_rl(mx: Matrix(Value))
 
 test_match_triple : Matrix(Value)
   let l = [x, x, e]
@@ -175,16 +170,18 @@ test_match_triple : Matrix(Value)
   | some => res.value
   // nat_to_number(match_x(m))
 
-// match_triple(values: List(Value)) : Value
-
+// Check if the values are all equal to value 'x'
+// values: a Matrix of 3 elements
 match_x(values: Matrix(Value)) : Maybe(Matrix(Value))
-  let filter_x = filter_mx(_ equal_x, values) // list of "o" elements
+  let filter_x = filter_mx(_ equal_x, values) // list of "x" elements
   let len_filtered = length_mx(_ filter_x)
   if nat_to_number(len_filtered) .==. 3 then
     some(_ values)
   else 
     none(_)
 
+// Check if the values are all equal to value 'o'
+// values: a Matrix of 3 elements
 match_o(values: Matrix(Value)) : Maybe(Matrix(Value))
   let filter_o = filter_mx(_ equal_o, values) // list of "o" elements
   let len_filtered = length_mx(_ filter_o)
@@ -193,11 +190,22 @@ match_o(values: Matrix(Value)) : Maybe(Matrix(Value))
   else 
     none(_)
 
+// ------------------
+
+// Add a new log on map event
+add_event_log(entry: GameMap, log: Log) : Log
+  cons(_ entry, log)
+  
+// 1. Game starts with an empty map
+// 1st player make his move
+// Game adds a new state if the move is valid
+// 2nd player make his move
 
 main
-  let a = [e, e, e,
+  let game_map = [e, e, e,
    e, e, e,
    e, e, e]
+
   let new_map = set_value_at(_ x, 1n, a)
   let move_1 = add_value(x, 2n, a)
   let move_2 = add_value(o, 0n, move_1)
