@@ -1,0 +1,38 @@
+import game
+
+matrix_test: Matrix(Value)
+  let l =
+  [o, e, e,
+   e, o, e,
+   e, e, x]
+  list_to_matrix(_ l)
+
+ex.get_value_at : Value
+  get_value_at(matrix_test, 8n)
+
+ex.set_value_at
+  show_matrix(set_value_at(x, 2n, matrix_test))
+
+// Output "oox"
+ex.diagonalLR
+  let a = 
+  [o, e, e,
+   e, o, e,
+   e, e, x]
+  show_matrix(diagonalLR(_ list_to_matrix(_ a), 9n))
+
+// Output "xo?"
+ex.diagonalRL
+  let a = 
+  [o, e, x,
+   e, o, e,
+   e, e, o]
+  show_matrix(diagonalRL(_ list_to_matrix(_ a), 9n))
+
+ex.match_triple : Matrix(Value)
+  let l = [x, x, e]
+  let m = list_to_matrix(_ l)
+  let res = match_x(m)
+  case res
+  | none => m_nil(_)
+  | some => res.value
