@@ -5,7 +5,7 @@ T Matrix<A>
 | m_cons(row: Number, col: Number, head: A, tail: Matrix(A))
 
 // // TODO add a proof that the new list a square root of xs lenght
-diagonalLR(A; mx: Matrix(A), idx: Nat) : Matrix(A)
+diagonal_up(A; mx: Matrix(A), idx: Nat) : Matrix(A)
   case mx
   | m_nil  => m_nil(_)
   | m_cons =>
@@ -13,25 +13,9 @@ diagonalLR(A; mx: Matrix(A), idx: Nat) : Matrix(A)
     | zero => m_nil(_)
     | succ =>  
       if (mx.row .==. mx.col) then
-        m_cons(_ mx.row, mx.col, mx.head, diagonalLR(_ mx.tail, idx.pred))
+        m_cons(_ mx.row, mx.col, mx.head, diagonal_up(_ mx.tail, idx.pred))
       else
-        diagonalLR(_ mx.tail, idx.pred)
-  : Matrix(A)
-
-diagonalRL(A; mx: Matrix(A), idx: Nat) : Matrix(A)
-  case mx
-  | m_nil  => m_nil(_)
-  | m_cons =>
-    case idx
-    | zero => m_nil(_)
-    | succ =>
-      let cell_1 = (mx.row .==. 2) .&. (mx.col .==. 0)
-      let cell_2 = (mx.row .==. 1) .&. (mx.col .==. 1)
-      let cell_3 = (mx.row .==. 0) .&. (mx.col .==. 2)
-      if cell_1 .|. cell_2 .|. cell_3 then
-        m_cons(_ mx.row, mx.col, mx.head, diagonalRL(_ mx.tail, idx.pred))
-      else
-        diagonalRL(_ mx.tail, idx.pred)
+        diagonal_up(_ mx.tail, idx.pred)
   : Matrix(A)
 
 // Transforms a list in a Matrix
