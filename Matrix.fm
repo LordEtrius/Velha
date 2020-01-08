@@ -4,7 +4,18 @@ T Matrix<A>
 | m_nil
 | m_cons(row: Number, col: Number, head: A, tail: Matrix(A))
 
-// // TODO add a proof that the new list a square root of xs lenght
+// Identify Row and Col positions in a Matrix 3x3
+T Mx_Line
+| l0
+| l1
+| l2
+
+mx_line_number(line: Mx_Line) : Number
+  case line
+  | l0 => 0
+  | l1 => 1
+  | l2 => 2
+
 diagonal_up(A; mx: Matrix(A), idx: Nat) : Matrix(A)
   case mx
   | m_nil  => m_nil(_)
@@ -16,6 +27,34 @@ diagonal_up(A; mx: Matrix(A), idx: Nat) : Matrix(A)
         m_cons(_ mx.row, mx.col, mx.head, diagonal_up(_ mx.tail, idx.pred))
       else
         diagonal_up(_ mx.tail, idx.pred)
+  : Matrix(A)
+
+// Gets a row in a matrix
+mx_get_row(A; mx: Matrix(A), line: Mx_Line, idx: Nat) : Matrix(A)
+  case mx
+  | m_nil  => m_nil(_)
+  | m_cons =>
+    case idx
+    | zero => m_nil(_)
+    | succ =>  
+      if (mx.row .==. mx_line_number(line)) then
+        m_cons(_ mx.row, mx.col, mx.head, mx_get_row(_ mx.tail, line, idx.pred))
+      else
+        mx_get_row(_ mx.tail, line, idx.pred)
+  : Matrix(A)
+
+// Gets a column in a matrix
+mx_get_col(A; mx: Matrix(A), line: Mx_Line, idx: Nat) : Matrix(A)
+  case mx
+  | m_nil  => m_nil(_)
+  | m_cons =>
+    case idx
+    | zero => m_nil(_)
+    | succ =>  
+      if (mx.row .==. mx_line_number(line)) then
+        m_cons(_ mx.row, mx.col, mx.head, mx_get_col(_ mx.tail, line, idx.pred))
+      else
+        mx_get_col(_ mx.tail, line, idx.pred)
   : Matrix(A)
 
 // Transforms a list in a Matrix

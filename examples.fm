@@ -48,7 +48,7 @@ ex.check_rows : Maybe(Matrix(Value))
   [o, e, e,
    e, o, e,
    x, x, x])
-  check_rows(map)
+  check_lines(map, get_row)
 
 // prints "o??"
 ex.get_row
@@ -56,7 +56,7 @@ ex.get_row
   [o, e, e,
    e, o, e,
    x, x, x])
-  show_matrix(get_row(map, r0))
+  show_matrix(get_row(map, l0))
 
 // prints "o?x"
 ex.get_col 
@@ -64,7 +64,7 @@ ex.get_col
   [o, e, e,
    e, o, e,
    x, x, x])
-  show_matrix(get_col(map, r0))
+  show_matrix(get_col(map, l0))
 
 ex.check_lines
   let map = list_to_matrix(_
@@ -77,12 +77,12 @@ ex.check_lines
   | some => show_matrix(match.value)
   
 
-ex.check_win
+ex.check_victory
   let map = list_to_matrix(_
   [o, e, e,
    e, o, e,
    x, x, x])
-  let match = check_win(map)
+  let match = check_victory(map)
   case match
   | none => "no match"
   | some => show_matrix(match.value)

@@ -9,13 +9,8 @@ T Value
 | e
 | x
 | o
-
-// Identify Row and Col positions in a Matrix 3x3
-T Row_Col
-| r0
-| r1
-| r2
   
+// Matrix 3x3
 GameMap : Type
   Matrix(Value)
 
@@ -28,17 +23,9 @@ T GameState
 Log : Type
   List(GameMap)
 
-// Describes the winning triple position
-TripleMatch : Type
-  List(Number)
-
-// show_map(gm: GameMap) : String
-//   case gm
-//   | nil  => []
-//   | cons => case gm.head 
-//     | e => cons(_ '?', show_map(gm.tail))
-//     | x => cons(_ 'x', show_map(gm.tail))
-//     | o => cons(_ 'o', show_map(gm.tail))
+T Diagonal
+| up 
+| down 
 
 // Auxiliary
 // ---------
@@ -85,14 +72,15 @@ nat_to_number(nat: Nat) : Number
   | succ => 1 .+. (nat_to_number(nat.pred))
 
 // Transforms a Matrix in String of Values
-show_matrix(m: Matrix(Value)) : String
-  case m
+show_matrix(map: GameMap) : String
+  case map
   | m_nil  => []
   | m_cons => 
-    case m.head as aux
-    | e => cons(_ '?', show_matrix(m.tail))
-    | x => cons(_ 'x', show_matrix(m.tail))
-    | o => cons(_ 'o', show_matrix(m.tail))
+    case map.head as aux
+    + map.tail : GameMap
+    | e => cons(_ '?', show_matrix(map.tail))
+    | x => cons(_ 'x', show_matrix(map.tail))
+    | o => cons(_ 'o', show_matrix(map.tail))
 
 equal_x(e : Value) : Bool
   case e 
@@ -108,13 +96,6 @@ equal_o(e : Value) : Bool
   | o => true
   : Bool
 
-// Transforms a Row_Col to Number
-row_col_number(rc: Row_Col) : Number
-  case rc
-  | r0 => 0
-  | r1 => 1
-  | r2 => 2
-
 // Game states
 // -----------
 empty_game_map : GameMap
@@ -127,7 +108,6 @@ empty_game_map : GameMap
 init_game : GameState
   game_state(empty_game_map, true)
 
-
 // Actions
 // -------
 // If possible, adds a new Value on empty cell
@@ -139,25 +119,25 @@ add_value(value: Value, idx: Nat, map: GameMap) : GameMap
   | false => map
 
 // Mark value ('x' or 'o') on a cell
-set_value_at(val: Value, idx: Nat, mx: GameMap) : GameMap
+set_value_at(val: Value, idx: Nat, map: GameMap) : GameMap
   case idx
-  + mx: GameMap
+  + map: GameMap
   | zero => 
-    case mx
+    case map
     | m_nil  => m_nil(_)
-    | m_cons => m_cons(_ mx.row, mx.col, val, mx.tail)
+    | m_cons => m_cons(_ map.row, map.col, val, map.tail)
   | succ =>
-    case mx
+    case map
     | m_nil => m_nil(_)
-    | m_cons => m_cons(_ mx.row, mx.col, mx.head, set_value_at(val, idx.pred, mx.tail))
+    | m_cons => m_cons(_ map.row, map.col, map.head, set_value_at(val, idx.pred, map.tail))
 
 
-get_value_at(mx: GameMap, idx: Nat) : Value
-  case mx
+get_value_at(map: GameMap, idx: Nat) : Value
+  case map
   | m_nil  => e
   | m_cons => case idx
-    | zero => mx.head
-    | succ => get_value_at(mx.tail, idx.pred)
+    | zero => map.head
+    | succ => get_value_at(map.tail, idx.pred)
   : Value
 
 
@@ -189,48 +169,35 @@ match_x_or_o(values: Matrix(Value)) : Maybe(Matrix(Value))
   | some => some(_ match_x.value)
 
 // Returns a Matrix 1x3 that stands for a given row in a Matrix 3x3
-get_row(map: GameMap, row: Row_Col) : Matrix(Value)
-  list_to_matrix(_ 
-    case row
-    | r0 => [get_value_at(map, 0n), get_value_at(map, 1n), get_value_at(map, 2n)]
-    | r1 => [get_value_at(map, 3n), get_value_at(map, 4n), get_value_at(map, 5n)]
-    | r2 => [get_value_at(map, 6n), get_value_at(map, 7n), get_value_at(map, 8n)]
-  )
+get_row(map: GameMap, row: Mx_Line) : Matrix(Value)
+  mx_get_row(_ map, row, 9n)
 
 // Returns a Matrix 1x3 that stands for a given row in a Matrix 3x3
-get_col(map: GameMap, col: Row_Col) : Matrix(Value)
-  list_to_matrix(_ 
-    case col
-    | r0 => [get_value_at(map, 0n), get_value_at(map, 3n), get_value_at(map, 6n)]
-    | r1 => [get_value_at(map, 1n), get_value_at(map, 4n), get_value_at(map, 7n)]
-    | r2 => [get_value_at(map, 2n), get_value_at(map, 5n), get_value_at(map, 8n)]
-  )
+get_col(map: GameMap, col: Mx_Line) : Matrix(Value)
+  mx_get_col(_ map, col, 9n)
 
-// map: Matrix 3x3
-get_diagonal_up(map: Matrix(Value)) : Matrix(Value)
-  list_to_matrix(_ [get_value_at(map, 2n), get_value_at(map, 4n), get_value_at(map, 6n)])
+// Returns a Matrix 1x3
+get_diagonal_up(map: GameMap) : Matrix(Value)
+  diagonal_up(_ map, 9n)
 
-// map: Matrix 3x3
-get_diagonal_down(map: Matrix(Value)) : Matrix(Value)
+// Returns a Matrix 1x3
+get_diagonal_down(map: GameMap) : Matrix(Value)
   list_to_matrix(_ [get_value_at(map, 8n), get_value_at(map, 4n), get_value_at(map, 0n)])
 
 // Check combinations
 // -----------------
-// map: Matrix(Value) 3x3
-check_rows(map: Matrix(Value)) : Maybe(Matrix(Value))
-  let row_0 = match_x_or_o(get_row(map, r0))
-  case row_0
-  | none => 
-    let row_1 = match_x_or_o(get_row(map, r1))
-    case row_1
-    | none => match_x_or_o(get_row(map, r2)) // returns the result of row 2
-    | some => some(_ row_1.value) // winner on row 1
-  | some => some(_ row_0.value) // winner on row 0
 
-T Diagonal
-| up 
-| down 
+// check_rows(map: GameMap) : Maybe(Matrix(Value))
+//   let row_0 = match_x_or_o(get_row(map, l0))
+//   case row_0
+//   | none => 
+//     let row_1 = match_x_or_o(get_row(map, l1))
+//     case row_1
+//     | none => match_x_or_o(get_row(map, l2)) // returns the result of row 2
+//     | some => some(_ row_1.value) // winner on row 1
+//   | some => some(_ row_0.value) // winner on row 0
 
+// Retuns if a match was found or not
 check_diagonals(map: Matrix(Value), pos: Diagonal) : Maybe(Matrix(Value))
   match_x_or_o(
     case pos
@@ -239,20 +206,22 @@ check_diagonals(map: Matrix(Value), pos: Diagonal) : Maybe(Matrix(Value))
     | down => get_diagonal_down(map)
   )
 
-
-// f: Matrix 3x3 -> Matrix 1x3 can be a get_row, get_col
-check_lines(map: Matrix(Value), f: (Matrix(Value) -> Row_Col -> Matrix(Value)) ) : Maybe(Matrix(Value))
-  let case_0 = match_x_or_o( f(map, r0))
+// Check rows and columns for a match. 
+// Retun a Matrix 1x3 if a match was found, otherwise, return none
+// f: Matrix 3x3 -> Matrix 1x3. 'f' can be get_row or get_col
+check_lines(map: GameMap, f: (GameMap -> Mx_Line -> Matrix(Value)) ) : Maybe(Matrix(Value))
+  let case_0 = match_x_or_o( f(map, l0))
   case case_0
   | none => 
-    let case_1 = match_x_or_o(f(map, r1))
+    let case_1 = match_x_or_o(f(map, l1))
     case case_1
-    | none => match_x_or_o(f(map, r2)) // returns the result of row 2
-    | some => some(_ case_1.value) // winner on row 1
-  | some => some(_ case_0.value) // winner on row 0
+    | none => match_x_or_o(f(map, l2)) // returns the result of line 2
+    | some => some(_ case_1.value) // winner on line 1
+  | some => some(_ case_0.value) // winner on line 0
 
 // Check a position of victory in a row, column or diagonal
-check_win(map: Matrix(Value)) : Maybe(Matrix(Value))
+// Retun a Matrix 1x3 if a match was found, otherwise, return none
+check_victory(map: GameMap) : Maybe(Matrix(Value))
   let row = check_lines(map, get_row)
   case row
   | none =>
