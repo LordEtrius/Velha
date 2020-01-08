@@ -14,20 +14,12 @@ ex.set_value_at
   show_matrix(set_value_at(x, 2n, matrix_test))
 
 // Output "oox"
-ex.diagonalLR
+ex.diagonal_up
   let a = 
   [o, e, e,
    e, o, e,
    e, e, x]
-  show_matrix(diagonalLR(_ list_to_matrix(_ a), 9n))
-
-// Output "xo?"
-ex.diagonalRL
-  let a = 
-  [o, e, x,
-   e, o, e,
-   e, e, o]
-  show_matrix(diagonalRL(_ list_to_matrix(_ a), 9n))
+  show_matrix(diagonal_up(_ list_to_matrix(_ a), 9n))
 
 ex.match_triple : Matrix(Value)
   let l = [x, x, e]
@@ -36,9 +28,6 @@ ex.match_triple : Matrix(Value)
   case res
   | none => m_nil(_)
   | some => res.value
-
-ex.get_row
-  show_matrix(get_row(matrix_test, r0))
 
 ex.match_x_or_o_true : String
   let triple = list_to_matrix(_ [o, o, o])
@@ -60,3 +49,40 @@ ex.check_rows : Maybe(Matrix(Value))
    e, o, e,
    x, x, x])
   check_rows(map)
+
+// prints "o??"
+ex.get_row
+  let map = list_to_matrix(_
+  [o, e, e,
+   e, o, e,
+   x, x, x])
+  show_matrix(get_row(map, r0))
+
+// prints "o?x"
+ex.get_col 
+  let map = list_to_matrix(_
+  [o, e, e,
+   e, o, e,
+   x, x, x])
+  show_matrix(get_col(map, r0))
+
+ex.check_lines
+  let map = list_to_matrix(_
+  [o, e, e,
+   e, o, e,
+   x, x, x])
+  let match = check_lines(map, get_row)
+  case match
+  | none => "no match"
+  | some => show_matrix(match.value)
+  
+
+ex.check_win
+  let map = list_to_matrix(_
+  [o, e, e,
+   e, o, e,
+   x, x, x])
+  let match = check_win(map)
+  case match
+  | none => "no match"
+  | some => show_matrix(match.value)

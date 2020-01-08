@@ -197,7 +197,24 @@ get_row(map: GameMap, row: Row_Col) : Matrix(Value)
     | r2 => [get_value_at(map, 6n), get_value_at(map, 7n), get_value_at(map, 8n)]
   )
 
-// Check horizontals
+// Returns a Matrix 1x3 that stands for a given row in a Matrix 3x3
+get_col(map: GameMap, col: Row_Col) : Matrix(Value)
+  list_to_matrix(_ 
+    case col
+    | r0 => [get_value_at(map, 0n), get_value_at(map, 3n), get_value_at(map, 6n)]
+    | r1 => [get_value_at(map, 1n), get_value_at(map, 4n), get_value_at(map, 7n)]
+    | r2 => [get_value_at(map, 2n), get_value_at(map, 5n), get_value_at(map, 8n)]
+  )
+
+// map: Matrix 3x3
+get_diagonal_up(map: Matrix(Value)) : Matrix(Value)
+  list_to_matrix(_ [get_value_at(map, 2n), get_value_at(map, 4n), get_value_at(map, 6n)])
+
+// map: Matrix 3x3
+get_diagonal_down(map: Matrix(Value)) : Matrix(Value)
+  list_to_matrix(_ [get_value_at(map, 8n), get_value_at(map, 4n), get_value_at(map, 0n)])
+
+// Check combinations
 // -----------------
 // map: Matrix(Value) 3x3
 check_rows(map: Matrix(Value)) : Maybe(Matrix(Value))
@@ -209,9 +226,45 @@ check_rows(map: Matrix(Value)) : Maybe(Matrix(Value))
     | none => match_x_or_o(get_row(map, r2)) // returns the result of row 2
     | some => some(_ row_1.value) // winner on row 1
   | some => some(_ row_0.value) // winner on row 0
-  
+
+T Diagonal
+| up 
+| down 
+
+check_diagonals(map: Matrix(Value), pos: Diagonal) : Maybe(Matrix(Value))
+  match_x_or_o(
+    case pos
+    + map : Matrix(Value)
+    | up   => get_diagonal_up(map)
+    | down => get_diagonal_down(map)
+  )
 
 
+// f: Matrix 3x3 -> Matrix 1x3 can be a get_row, get_col
+check_lines(map: Matrix(Value), f: (Matrix(Value) -> Row_Col -> Matrix(Value)) ) : Maybe(Matrix(Value))
+  let case_0 = match_x_or_o( f(map, r0))
+  case case_0
+  | none => 
+    let case_1 = match_x_or_o(f(map, r1))
+    case case_1
+    | none => match_x_or_o(f(map, r2)) // returns the result of row 2
+    | some => some(_ case_1.value) // winner on row 1
+  | some => some(_ case_0.value) // winner on row 0
+
+// Check a position of victory in a row, column or diagonal
+check_win(map: Matrix(Value)) : Maybe(Matrix(Value))
+  let row = check_lines(map, get_row)
+  case row
+  | none =>
+    let col = check_lines(map, get_col)
+    case col 
+    | none => 
+      let d_up = check_diagonals(map, up)
+      case d_up 
+      | none => check_diagonals(map, down) // returns the result of diagonal down
+      | some => some(_ d_up.value) // match on diagonal up
+    | some => some(_ col.value) // match on a col
+  | some => some(_ row.value) // match on a row
 
 // ------------------
 
