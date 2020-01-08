@@ -4,11 +4,18 @@ import Matrix
 // Data Structures
 // --------------
 
+// A value that a cell in the Matrix can have
 T Value
 | e
 | x
 | o
 
+// Identify Row and Col positions in a Matrix 3x3
+T Row_Col
+| r0
+| r1
+| r2
+  
 GameMap : Type
   Matrix(Value)
 
@@ -52,10 +59,7 @@ show_formatted_map(size: Nat, str: String) : String
         cons(_ str.head, show_formatted_map(size.pred, str.tail))
   : String
 
-// get_value_at(A; index: Nat, xs: List(A), default: A) : A
-//   let value_at = at(_ index, xs)
-//   with_default(_ default, value_at)
-
+// Check if two Values are equal
 is_value_equal(value: Value, match: Value) : Bool
   case value
   | e => 
@@ -73,12 +77,14 @@ is_value_equal(value: Value, match: Value) : Bool
     | e => false
     | x => false
     | o => true
-  
+
+// Transforms Nat to Number
 nat_to_number(nat: Nat) : Number
   case nat
   | zero => 0
   | succ => 1 .+. (nat_to_number(nat.pred))
 
+// Transforms a Matrix in String of Values
 show_matrix(m: Matrix(Value)) : String
   case m
   | m_nil  => []
@@ -98,9 +104,16 @@ equal_x(e : Value) : Bool
 equal_o(e : Value) : Bool
   case e 
   | e => false 
-  | x => true
-  | o => false
+  | x => false
+  | o => true
   : Bool
+
+// Transforms a Row_Col to Number
+row_col_number(rc: Row_Col) : Number
+  case rc
+  | r0 => 0
+  | r1 => 1
+  | r2 => 2
 
 // Game states
 // -----------
@@ -168,8 +181,36 @@ match_o(values: Matrix(Value)) : Maybe(Matrix(Value))
   else 
     none(_)
 
+// values: a Matrix of 3 elements
+match_x_or_o(values: Matrix(Value)) : Maybe(Matrix(Value))
+  let match_x = match_x(values)
+  case match_x
+  | none => match_o(values) // check if match 'o'
+  | some => some(_ match_x.value)
+
+// Returns a Matrix 1x3 that stands for a given row in a Matrix 3x3
+get_row(map: GameMap, row: Row_Col) : Matrix(Value)
+  list_to_matrix(_ 
+    case row
+    | r0 => [get_value_at(map, 0n), get_value_at(map, 1n), get_value_at(map, 2n)]
+    | r1 => [get_value_at(map, 3n), get_value_at(map, 4n), get_value_at(map, 5n)]
+    | r2 => [get_value_at(map, 6n), get_value_at(map, 7n), get_value_at(map, 8n)]
+  )
+
 // Check horizontals
-// check_h_0(mx: Matrix(Value)) : Maybe(Matrix(Value))
+// -----------------
+// map: Matrix(Value) 3x3
+check_rows(map: Matrix(Value)) : Maybe(Matrix(Value))
+  let row_0 = match_x_or_o(get_row(map, r0))
+  case row_0
+  | none => 
+    let row_1 = match_x_or_o(get_row(map, r1))
+    case row_1
+    | none => match_x_or_o(get_row(map, r2)) // returns the result of row 2
+    | some => some(_ row_1.value) // winner on row 1
+  | some => some(_ row_0.value) // winner on row 0
+  
+
 
 
 // ------------------

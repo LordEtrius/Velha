@@ -36,3 +36,27 @@ ex.match_triple : Matrix(Value)
   case res
   | none => m_nil(_)
   | some => res.value
+
+ex.get_row
+  show_matrix(get_row(matrix_test, r0))
+
+ex.match_x_or_o_true : String
+  let triple = list_to_matrix(_ [o, o, o])
+  let match = match_x_or_o(triple)
+  case match
+  | none => "dont match"
+  | some => show_matrix(match.value)
+
+ex.match_x_or_o_false : String
+  let triple = list_to_matrix(_ [x, o, x])
+  let match = match_x_or_o(triple)
+  case match
+  | none => "dont match"
+  | some => show_matrix(match.value)
+
+ex.check_rows : Maybe(Matrix(Value))
+  let map = list_to_matrix(_
+  [o, e, e,
+   e, o, e,
+   x, x, x])
+  check_rows(map)
